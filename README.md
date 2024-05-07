@@ -1,5 +1,3 @@
-# Uphold---bot
-Uphold Assessment Challenge
 
 # Uphold Crypto Bot
 
