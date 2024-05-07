@@ -15,7 +15,6 @@ async function retrieveCurrencyPairRate(currencyPair) {
 const calculateOscillation = (startPrice, currentPrice, pair,oscillation) => {
     // Calculate percentage using Math.abs in case of negative
     const percentageChange = Math.abs((currentPrice - startPrice) / startPrice) * 100;
-    console.log(percentageChange,currentPrice,startPrice)
     // Check if percentage change exceeds 0.01% to trigger alert logic
     if (percentageChange >= oscillation) {
       console.log(`${pair} price reached ${oscillation}% oscillation or more!`);
@@ -40,7 +39,6 @@ const calculateOscillation = (startPrice, currentPrice, pair,oscillation) => {
     
       // Wait for all initial data fetching to complete
       await Promise.all(initialDataPromises);
-      console.log(initialPrices,"houni")
       return initialPrices
   }
 
@@ -48,6 +46,10 @@ const calculateOscillation = (startPrice, currentPrice, pair,oscillation) => {
 
 // Function to run the bot for specified currency pairs
 const launchBot = async (currencyPairs = ["BTC-USD","ETH-EUR"],oscillation = 0.01,fetchInterval = 5000) => {
+
+        //in case of one enty pair as a string
+        typeof currencyPairs === "string" && (currencyPairs = [currencyPairs]);
+
     // Initialize initial prices for each currency pair
     let startingPrices = await fetchInitialPrices(currencyPairs)
   
@@ -57,7 +59,7 @@ const launchBot = async (currencyPairs = ["BTC-USD","ETH-EUR"],oscillation = 0.0
       // Fetch current data for all currency pairs concurrently
       const currentDataPromises = currencyPairs.map(async (pair) => {
         const data = await retrieveCurrencyPairRate(pair);
-        if (data) {
+        if (data && !isNaN(+data.ask)) {
           const askPrice = +data.ask; //converting the string to an integer
           calculateOscillation(startingPrices[pair], askPrice, pair,oscillation);
         } else {
@@ -66,7 +68,7 @@ const launchBot = async (currencyPairs = ["BTC-USD","ETH-EUR"],oscillation = 0.0
         }
       });
   
-      // Wait for all current data fetching to complete
+      // fetch currentPrice concurrently for each currency pair
       await Promise.all(currentDataPromises);
     }, fetchInterval);
   };
